@@ -1,41 +1,42 @@
 <template>
   <div>
-    <div>{{activeArrStart}}</div>
-    <div>{{activeArrEnd}}</div>
 
-    <div class='gallery ui-helper-reset field' id="area"></div>
+    <div class="area" id="area"></div>
+    <div class="bar" id="bar">
 
-    <div id="gallery" class="gallery ui-helper-reset ui-helper-clearfix bar">
-
-      <div class="ui-widget-content ui-corner-tr box box-start">
+      <div class="box box-start">
         <div class="box__remove delete"><span>x</span></div>
-        <span class="ui-widget-header">Start El</span>
+        <div class="box__title">Start El</div>
         <div class="box__out"></div>
       </div>
-      <div class="ui-widget-content ui-corner-tr box box-cond">
+
+      <div class="box box-cond">
         <div class="box__remove delete"><span>x</span></div>
-        <span class="ui-widget-header">Cond El</span>
+        <div class="box__title">Cond El</div>
         <div class="box__in"></div>
         <div>
           <div class="box__out"></div>
           <div class="box__out"></div>
         </div>
       </div>
-      <div class="ui-widget-content ui-corner-tr box box-input">
+
+      <div class="box box-input">
         <div class="box__remove delete"><span>x</span></div>
-        <span class="ui-widget-header">Input El</span>
+        <div class="box__title">Input El</div>
         <div class="box__in"></div>
         <div class="box__out"></div>
       </div>
-      <div class="ui-widget-content ui-corner-tr box box-output">
+
+      <div class="box box-output">
         <div class="box__remove delete"><span>x</span></div>
-        <span class="ui-widget-header">Output El</span>
+        <div class="box__title">Output El</div>
         <div class="box__in"></div>
         <div class="box__out"></div>
       </div>
-      <div class="ui-widget-content ui-corner-tr box box-finish">
+
+      <div class="box box-finish">
         <div class="box__remove delete"><span>x</span></div>
-        <span class="ui-widget-header">Finish El</span>
+        <div class="box__title">Finish El</div>
         <div class="box__in"></div>
       </div>
     </div>
@@ -51,88 +52,64 @@
 
     data () {
       return {
-        coords: {x:null,y:null},
+        coords: {
+          x: null,
+          y: null
+        },
         activeArrStart: null,
         activeArrEnd: null
       }
     },
     mounted: function () {
       const self = this;
-      const $gallery = $( "#gallery" );
+      const bar = $( "#bar" );
       const $area   = $( "#area" );
 
-      $.fn.extend({
-        getPath: function () {
-          var path, node = this;
-          while (node.length) {
-            var realNode = node[0], name = realNode.localName;
-            if (!name) break;
-            name = name.toLowerCase();
-
-            var parent = node.parent();
-
-            var sameTagSiblings = parent.children(name);
-            if (sameTagSiblings.length > 1) {
-              var allSiblings = parent.children();
-              var index = allSiblings.index(realNode) + 1;
-              if (index > 1) {
-                name += ':nth-child(' + index + ')';
-              }
-            }
-
-            path = name + (path ? '>' + path : '');
-            node = parent;
-          }
-
-          return path;
-        }
-      });
-
-      $( ".box", $gallery ).draggable({
-        cancel: ".delete , .box__out",
-        revert: "invalid",
+      $( ".box", bar ).draggable({
+        cancel:      ".delete , .box__out",
+        revert:      "invalid",
         containment: "document",
-        helper: "clone",
-        cursor: "move",
-        drag: function (event) {
-          self.coords.x =event.pageX;
-          self.coords.y =event.pageY;
+        helper:      "clone",
+        cursor:      "move",
+        drag: (event) => {
+          self.coords.x = event.pageX;
+          self.coords.y = event.pageY;
         }
       });
 
       $area.droppable({
-        accept: ".bar > .box",
+        accept:  ".bar > .box",
         classes: {
           "ui-droppable-active": "ui-state-highlight"
         },
-        drop: function( event, ui ) {
-          deleteImage( ui.draggable );
+        drop: ( event, ui ) => {
+          cloneElement( ui.draggable );
         }
       });
 
-      var arrowsDrawer2 = $cArrows('#area');
+      const arrowsDrawer2 = $cArrows('#area');
 
-      function deleteImage( $item) {
+      function cloneElement( $item) {
         const $new_item = $item.clone();
-            $new_item.draggable({
-              cancel: ".delete , .box__out",
-              containment: $area,
-              cursor: "move",
-              drag: (event) => {
-                self.coords.x = event.clientX;
-                self.coords.y = event.clientY;
-                arrowsDrawer2.redraw();
-              }
-            });
-            $new_item.css('position','absolute');
-            $new_item.css('left',self.coords.x);
-            $new_item.css('top',self.coords.y);
+              $new_item.draggable({
+                cancel:      ".delete , .box__out",
+                containment: $area,
+                cursor:      "move",
+                drag: (event) => {
+                  self.coords.x = event.clientX;
+                  self.coords.y = event.clientY;
+                  arrowsDrawer2.redraw();
+                }
+              });
+              $new_item.css('position','absolute');
+              $new_item.css('left', self.coords.x);
+              $new_item.css('top', self.coords.y);
 
-            $new_item.appendTo( $area );
-            $new_item.on( "click",".delete", () => {
-              $new_item.remove();
-              return false;
-            });
+              $new_item.appendTo( $area );
+              $new_item.on( "click",".delete", () => {
+                $new_item.remove();
+                return false;
+              });
 
         const boxOut = document.querySelectorAll('.box__out');
               boxOut.forEach((item) =>{
@@ -151,16 +128,11 @@
       }
 
       $( ".bar > .box" ).on( "click", ( event ) => {
-          let $item = $( this ),
-            $target = $( event.target );
-
-          if ( $target.is( ".delete" ) ) {
-            $(this).remove();
-            deleteImage( $item );
-          }
-
-          return false;
-        });
+        if ( $( event.target ).is( ".delete" ) ) {
+          $(this).remove();
+        }
+        return false;
+      });
 
     },
     methods: {}
@@ -168,7 +140,7 @@
 </script>
 
 <style scoped>
-  .field {
+  .area {
     height: 500px;
   }
   .bar {
@@ -177,7 +149,6 @@
     padding: 20px;
     border: 1px solid #000;
     justify-content: space-around;
-    /*background-color: #2c3e50;*/
   }
   .box {
     position: relative;
@@ -198,6 +169,10 @@
     left: 0;
     font-size: 12px;
   }
+  .box__title {
+    font-size: 14px;
+    font-weight: 600;
+  }
   .box__remove > span {
     margin: auto;
   }
@@ -205,25 +180,29 @@
   .box__in {
     position: absolute;
     cursor: pointer;
-    background-color: red;
-    height: 15px;
-    width: 15px;
-    top: calc(50% - 7.5px);
-    left: -15px;
+    background-color: #fff;
+    border: 1px solid lightgrey;
+    border-radius: 50%;
+    height: 10px;
+    width: 10px;
+    top: calc(50% - 5px);
+    left: -5px;
   }
   .box__out {
     position: absolute;
     cursor: pointer;
-    background-color: red;
-    height: 15px;
-    width: 15px;
-    top: calc(50% - 7.5px);
-    right: -15px;
+    background-color: #fff;
+    border: 1px solid lightgrey;
+    border-radius: 50%;
+    height: 10px;
+    width: 10px;
+    top: calc(50% - 5px);
+    right: -5px;
   }
   .box-cond .box__out:first-of-type {
-    top: calc(33.33% - 7.5px);
+    top: calc(33.33% - 5px);
   }
   .box-cond .box__out:last-of-type {
-    top: calc(66.66% - 7.5px);
+    top: calc(66.66% - 5px);
   }
 </style>
